@@ -88,7 +88,7 @@ def write_power_to_csv(container_power_usage):
 def get_load_value(container_power_usage):
     for container in container_power_usage:
         try:
-            port = 5000 + int(container.split('_')[-1])
+            port = 8000 + int(container.split('_')[-1])
             response = requests.get(f'http://localhost:{port}/load_value')
             if response.status_code == 200:
                 load_value = response.json().get('load_value', 0)
