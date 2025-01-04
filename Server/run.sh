@@ -6,21 +6,21 @@ docker run -d \
     --name dummy_server_1 \
     --cpus=5 \
     --memory=1g \
-    -p 5001:5000 \
+    -p 8001:8000 \
     dummy_server
 
 docker run -d \
     --name dummy_server_2 \
     --cpus=5 \
     --memory=1g \
-    -p 5002:5000 \
+    -p 8002:8000 \
     dummy_server
 
 docker run -d \
     --name dummy_server_3 \
     --cpus=5 \
     --memory=1g \
-    -p 5003:5000 \
+    -p 8003:8000 \
     dummy_server
 
 

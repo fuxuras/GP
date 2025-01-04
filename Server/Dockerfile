@@ -6,8 +6,9 @@ COPY . /app
 
 RUN pip install --no-cache-dir flask
 RUN pip install --no-cache-dir numba
+RUN pip install --no-cache-dir fastapi
 
-EXPOSE 5000
+EXPOSE 8000
 
 ENV FLASK_APP=server.py
 

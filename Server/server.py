@@ -1,6 +1,6 @@
-from flask import Flask, request, jsonify
 from numba import jit
 import threading
+from fastapi import FastAPI, HTTPException
 
 load_value = 0
 
@@ -34,32 +34,31 @@ class prime_finder(threading.Thread):
 
 
 
-app = Flask(__name__)
+app = FastAPI()
 
-@app.route('/nth_prime', methods=['GET'])
-def get_nth_prime():
+@app.get("/nth_prime")
+async def get_nth_prime(n: int):
     global load_value
-    n = request.args.get('n', type=int)
-    if n is None or n <= 0:
-        return jsonify({"error": "Invalid input"}), 400
+    if n <= 0:
+        raise HTTPException(status_code=400, detail="Invalid input")
     try:
-        load_value+=n
+        load_value += n
         prime_finder_thread = prime_finder(n)
         prime_finder_thread.start()
         prime_finder_thread.join()
         prime_number = prime_finder_thread.result
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        raise HTTPException(status_code=500, detail=str(e))
     finally:
-        load_value-=n
-    return jsonify({"nth_prime": prime_number})
+        load_value -= n
+    return {"nth_prime": prime_number}
 
-
-@app.route('/load_value', methods=['GET'])
-def get_load_value():
+@app.get("/load_value")
+async def get_load_value():
     global load_value
-    return jsonify({"load_value": load_value})
+    return {"load_value": load_value}
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0',debug=True)
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
 
