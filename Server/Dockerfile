@@ -5,6 +5,7 @@ WORKDIR /app
 COPY . /app
 
 RUN pip install --no-cache-dir flask
+RUN pip install --no-cache-dir numba
 
 EXPOSE 5000
 
