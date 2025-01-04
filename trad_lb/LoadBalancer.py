@@ -1,5 +1,8 @@
+import aiohttp
 import requests
 from flask import Flask, request, jsonify
+from fastapi import FastAPI, HTTPException
+import uvicorn
 
 class LoadBalancer:
     def __init__(self, servers):
@@ -12,19 +15,25 @@ class LoadBalancer:
         return server
 
 
+app = FastAPI()
+lb = LoadBalancer(["localhost:8001", "localhost:8002", "localhost:8003"])
 
-app = Flask(__name__)
-lb = LoadBalancer(["localhost:5000", "localhost:5001", "localhost:5002"])
 
-@app.route('/nth_prime', methods=['GET'])
-def nth_prime():
-    n = request.args.get('n', type=int)
-    
+@app.get("/nth_prime")
+async def nth_prime(n: int):
+    if n <= 0:
+        raise HTTPException(status_code=400, detail="Invalid input")
+
     server = lb.round_robin()
     url = f"http://{server}/nth_prime?n={n}"
-    result = requests.get(url).json()
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            if response.status != 200:
+                raise HTTPException(status_code=response.status, detail=response.text)
+            result = response.json()
 
-    return jsonify(result)
+    return result
+
 
 if __name__ == "__main__":
-    app.run(port=8080)
+    uvicorn.run(app, host="0.0.0.0", port=8080)
