@@ -15,8 +15,7 @@ class DummyClient:
         range_of_elements = int(input("Enter range of elements: "))
 
         np.random.seed(self.seed)
-        self.sequence = np.random.normal(100, 10, number_of_elements)
-        self.sequence = np.clip(self.sequence, 0, range_of_elements).astype(int)
+        self.sequence = np.random.normal(range_of_elements/2, range_of_elements/8, number_of_elements)
         print("Sequence created.")
 
     def set_seed(self):
