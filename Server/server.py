@@ -1,6 +1,7 @@
 from numba import jit
 import threading
 from fastapi import FastAPI, HTTPException
+import uvicorn
 
 load_value = 0
 
@@ -59,6 +60,5 @@ async def get_load_value():
     return {"load_value": load_value}
 
 if __name__ == '__main__':
-    import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
 
