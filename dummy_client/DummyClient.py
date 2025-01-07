@@ -10,13 +10,21 @@ class DummyClient:
         self.sequence = []
         self.seed = 0
 
-    def normal_disturbution(self):
+    def generate_numbers(self):
         number_of_elements = int(input("Enter number of elements: "))
         range_of_elements = int(input("Enter range of elements: "))
 
         np.random.seed(self.seed)
-        self.sequence = np.random.normal(range_of_elements/2, range_of_elements/8, number_of_elements)
+
+        scale = range_of_elements / 10
+        shape = 2
+
+        raw_numbers = np.random.pareto(shape, number_of_elements) * scale
+
+        self.sequence = np.clip(np.round(raw_numbers).astype(int), 1, range_of_elements)
+
         print("Sequence created.")
+        print(self.sequence)
 
     def set_seed(self):
         self.seed = int(input("Enter seed: "))
@@ -24,19 +32,24 @@ class DummyClient:
 
     async def send_sequence(self):
         async with aiohttp.ClientSession() as session:
-            for i in range(len(self.sequence)):
+            i = 0
+            tasks = []
+            while i < len(self.sequence):
                 num_requests = random.randint(20, 100)
-                tasks = [self.send_request(session, self.sequence[i]) for _ in range(num_requests)]
-                await asyncio.gather(*tasks)
-                wait_time = random.uniform(0, 5)
+                for offset in range(num_requests):
+                    if i + offset < len(self.sequence):
+                        task = asyncio.create_task(self.send_request(session, self.sequence[i + offset]))
+                        tasks.append(task)
+                wait_time = random.uniform(0, 20)
                 print(f"Waiting for {wait_time:.2f} seconds before sending next batch of requests...")
+                i += num_requests
                 await asyncio.sleep(wait_time)
 
     async def send_request(self,session, i):
         max_retries = 5
         for attempt in range(max_retries):
             try:
-                async with session.get(f'http://localhost:5000/nth_prime?n={i}') as response:
+                async with session.get(f'http://localhost:8080/nth_prime?n={i}') as response:
                     print(await response.text())
                     return
             except aiohttp.ClientError as e:
@@ -65,7 +78,7 @@ if __name__ == '__main__':
 
         choice = input("Enter choice: ")
         if choice == '1':
-            dummy_client.normal_disturbution()
+            dummy_client.generate_numbers()
         elif choice == '2':
             asyncio.run(dummy_client.send_sequence())
         elif choice == '3':
