@@ -1,3 +1,12 @@
+docker stop dummy_server_1
+docker stop dummy_server_2
+docker stop dummy_server_3
+
+docker container remove dummy_server_1
+docker container remove dummy_server_2
+docker container remove dummy_server_3
+
+
 sudo chmod 644 /sys/class/powercap/intel-rapl/intel-rapl:0/energy_uj
 
 sudo docker build -t dummy_server .
