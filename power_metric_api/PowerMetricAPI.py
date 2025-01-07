@@ -25,7 +25,7 @@ def main_loop():
         docker_status = get_docker_stats()
         power_usage = get_power_consumption()
         container_power_usage = calc_container_power_usage(power_usage, docker_status)
-        container_power_usage = get_load_value(container_power_usage)
+        container_power_usage = get_active_conn(container_power_usage)
         write_power_to_csv(container_power_usage)
 
 
@@ -50,7 +50,7 @@ def get_power_consumption():
     with open(energy_file, 'r') as f:
         initial_energy = int(f.read().strip())
 
-    time.sleep(0.1)
+    time.sleep(0.3)
 
     with open(energy_file, 'r') as f:
         final_energy = int(f.read().strip())
@@ -81,19 +81,20 @@ def write_power_to_csv(container_power_usage):
 
         timestamp = time.strftime('%Y-%m-%d %H:%M:%S')
         for container, usage in container_power_usage.items():
-            writer.writerow([timestamp, container, usage['load'], usage['power']])
-            print(f"Writing to CSV: {timestamp}, {container}, {usage['load']}, {usage['power']}")
+            writer.writerow([timestamp, container, usage['active_conn'], usage['load_value'] , usage['power']])
+            print(f"Writing to CSV: {timestamp}, {container}, {usage['active_conn']}, {usage['load_value']} , {usage['power']}")
 
 
-def get_load_value(container_power_usage):
+def get_active_conn(container_power_usage):
     for container in container_power_usage:
         try:
             port = 8000 + int(container.split('_')[-1])
-            response = requests.get(f'http://localhost:{port}/load_value')
+            response = requests.get(f'http://localhost:{port}/stats')
             if response.status_code == 200:
+                active_conn = response.json().get('active_conn', 0)
                 load_value = response.json().get('load_value', 0)
                 power_value = container_power_usage[container]
-                container_power_usage[container] = {'load': load_value, 'power': power_value}
+                container_power_usage[container] = {'active_conn': active_conn, 'load_value':load_value, 'power': power_value}
             else:
                 print(f"Failed to get load value for {container}: {response.status_code}")
         except Exception as e:
