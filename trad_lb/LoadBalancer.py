@@ -30,7 +30,7 @@ async def nth_prime(n: int):
         async with session.get(url) as response:
             if response.status != 200:
                 raise HTTPException(status_code=response.status, detail=response.text)
-            result = response.json()
+            result = await response.json()
 
     return result
 
