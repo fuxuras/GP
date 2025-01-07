@@ -4,10 +4,7 @@ WORKDIR /app
 
 COPY . /app
 
-RUN pip install --no-cache-dir flask
-RUN pip install --no-cache-dir numba
-RUN pip install --no-cache-dir fastapi
-RUN pip install --no-cache-dir uvicorn
+RUN pip install --no-cache-dir -r requirements.txt
 
 EXPOSE 8000
 
