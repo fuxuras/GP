@@ -30,7 +30,7 @@ class DummyClient:
         self.seed = int(input("Enter seed: "))
 
 
-    async def send_sequence(self, choice):
+    async def send_sequence(self, lb_choice):
         energy_file = '/sys/class/powercap/intel-rapl/intel-rapl:0/energy_uj'
 
         with open(energy_file, 'r') as f:
@@ -44,7 +44,7 @@ class DummyClient:
                 num_requests = random.randint(20, 100)
                 for offset in range(num_requests):
                     if i + offset < len(self.sequence):
-                        task = asyncio.create_task(self.send_request(session, self.sequence[i + offset],choice))
+                        task = asyncio.create_task(self.send_request(session, self.sequence[i + offset], lb_choice))
                         tasks.append(task)
                 wait_time = 2
                 print(f"Waiting for {wait_time:.2f} seconds before sending next batch of requests...")
@@ -58,11 +58,11 @@ class DummyClient:
         end_time = time.time() - start_time
         print(f"Experiment finished in {end_time} seconds. Power consumption: {power_watts} W")
 
-    async def send_request(self, session, i, choosed_server):
+    async def send_request(self, session, i, chosen_server):
         max_retries = 5
         for attempt in range(max_retries):
             try:
-                async with session.get(f'http://localhost:808{choosed_server}/nth_prime?n={i}') as response:
+                async with session.get(f'http://localhost:808{str(chosen_server)}/nth_prime?n={i}') as response:
                     print(await response.text())
                     return
             except aiohttp.ClientError as e:
