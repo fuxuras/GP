@@ -30,7 +30,13 @@ class DummyClient:
         self.seed = int(input("Enter seed: "))
 
 
-    async def send_sequence(self):
+    async def send_sequence(self, choice):
+        energy_file = '/sys/class/powercap/intel-rapl/intel-rapl:0/energy_uj'
+
+        with open(energy_file, 'r') as f:
+            initial_energy = int(f.read().strip())
+        start_time = time.time()
+        
         async with aiohttp.ClientSession() as session:
             i = 0
             tasks = []
@@ -38,18 +44,25 @@ class DummyClient:
                 num_requests = random.randint(20, 100)
                 for offset in range(num_requests):
                     if i + offset < len(self.sequence):
-                        task = asyncio.create_task(self.send_request(session, self.sequence[i + offset]))
+                        task = asyncio.create_task(self.send_request(session, self.sequence[i + offset],choice))
                         tasks.append(task)
-                wait_time = random.uniform(0, 20)
+                wait_time = 2
                 print(f"Waiting for {wait_time:.2f} seconds before sending next batch of requests...")
                 i += num_requests
                 await asyncio.sleep(wait_time)
+            await asyncio.gather(*tasks)
+        
+        with open(energy_file, 'r') as f:
+            final_energy = int(f.read().strip())
+        power_watts = (final_energy - initial_energy) / 1_000_000
+        end_time = time.time() - start_time
+        print(f"Experiment finished in {end_time} seconds. Power consumption: {power_watts} W")
 
-    async def send_request(self,session, i):
+    async def send_request(self, session, i, choosed_server):
         max_retries = 5
         for attempt in range(max_retries):
             try:
-                async with session.get(f'http://localhost:8080/nth_prime?n={i}') as response:
+                async with session.get(f'http://localhost:808{choosed_server}/nth_prime?n={i}') as response:
                     print(await response.text())
                     return
             except aiohttp.ClientError as e:
@@ -71,21 +84,24 @@ if __name__ == '__main__':
     while is_running:
         print("Select Number")
         print("1. Create Sequence")
-        print("2. Send Sequence")
-        print("3. Set seed")
-        print("4. Print Sequence")
-        print("5. Exit")
+        print("2. Send Sequence to traditional load balancer")
+        print("3. Send Sequence to LSTM load balancer")
+        print("4. Set seed")
+        print("5. Print Sequence")
+        print("6. Exit")
 
         choice = input("Enter choice: ")
         if choice == '1':
             dummy_client.generate_numbers()
         elif choice == '2':
-            asyncio.run(dummy_client.send_sequence())
+            asyncio.run(dummy_client.send_sequence(0))
         elif choice == '3':
-            dummy_client.set_seed()
+            asyncio.run(dummy_client.send_sequence(1))
         elif choice == '4':
-            dummy_client.print_sequence()
+            dummy_client.set_seed()
         elif choice == '5':
+            dummy_client.print_sequence()
+        elif choice == '6':
             is_running = False
         else:
             print("Invalid Choice")
