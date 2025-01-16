@@ -1,6 +1,5 @@
 import aiohttp
 import requests
-from flask import Flask, request, jsonify
 from fastapi import FastAPI, HTTPException
 import uvicorn
 
