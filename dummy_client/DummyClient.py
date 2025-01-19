@@ -57,6 +57,7 @@ class DummyClient:
         power_watts = (final_energy - initial_energy) / 1_000_000
         end_time = time.time() - start_time
         print(f"Experiment finished in {end_time} seconds. Power consumption: {power_watts} W")
+        print(f"mean power consumption: {power_watts/end_time} W")
 
     async def send_request(self, session, i, chosen_server):
         max_retries = 5
