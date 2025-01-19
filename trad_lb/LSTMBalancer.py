@@ -25,14 +25,16 @@ def update_predicts():
         for i in range(3):
             input_array[0, :, 0] = last_sequence[i]
             predicts[i] = model.predict(input_array, verbose=0)[0][0]
-        time.sleep(0.1)
+        time.sleep(0.2)
 
 def get_best_server(n):
     best_server_index = np.argmin(predicts)
-    last_sequence[best_server_index].append(n)
-    last_sequence[best_server_index].pop(0)
+    last_sequence[best_server_index].append(custom_minmax_scale(n))
     return servers[best_server_index]
 
+
+def custom_minmax_scale(x, data_min=0.0, data_max=716276.0, min_=0.0, scale_=1.3961098794319508e-06):
+    return (x - data_min) * scale_ + min_
 
 @app.get("/nth_prime")
 async def nth_prime(n: int):
